@@ -1,0 +1,1048 @@
+zabbix_export:
+  version: '7.4'
+  template_groups:
+  - uuid: bdeaa14c531245709ba6535a8d0ab845
+    name: Templates/Storage
+  templates:
+  - uuid: 5d557a2e9413402ba58e5daa87e3c5f4
+    template: QNAP TS-869 Pro by SNMP
+    name: QNAP TS-869 Pro by SNMP
+    description: 'Community SNMP template for QNAP TS-869 Pro running legacy QTS 4.3.x.
+
+      Tested with QTS 4.3.4 and Zabbix 7.4.13 using SNMPv2c.
+
+      Monitors all eight drive bays, disk temperature/health/model/capacity, two system fans, DataVol1, SNMP availability,
+      four logical CPU processors via HOST-RESOURCES-MIB, and physical memory.
+
+      Effective memory usage subtracts QTS-reported buffers and cached memory from raw used RAM.
+
+
+      Configure the host with an SNMP interface on UDP/161. Set {$SNMP_COMMUNITY} to the SNMP community configured on the
+      NAS.'
+    vendor:
+      name: Custom
+      version: 7.4-2
+    groups:
+    - name: Templates/Storage
+    items:
+    - uuid: 37e4990cf4f14586a86d3ecbd14a99d0
+      name: System description
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.1.1.0]
+      key: qnap.system.descr
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: system
+    - uuid: 96314351e37140dd9f5b8af111698e13
+      name: SNMP agent availability
+      type: INTERNAL
+      key: zabbix[host,snmp,available]
+      delay: 1m
+      history: 7d
+      value_type: UNSIGNED
+      tags:
+      - tag: component
+        value: system
+      triggers:
+      - uuid: 66cf46ec32e847f6b1856314b579e999
+        expression: max(/QNAP TS-869 Pro by SNMP/zabbix[host,snmp,available],5m)=0
+        name: 'QNAP: SNMP is unavailable'
+        priority: HIGH
+        description: Zabbix cannot reach the QNAP SNMP interface.
+    - uuid: bb6247932b9d48dca6347a7df1463e68
+      name: 'HDD1: Model'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.5.1]
+      key: qnap.disk.model[1]
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD1
+    - uuid: d45c8a48748b412da5fa51812ea63bca
+      name: 'HDD1: Capacity'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.6.1]
+      key: qnap.disk.capacity[1]
+      delay: 1h
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD1
+    - uuid: cdb787903dc14da5b1331cd609d28273
+      name: 'HDD1: Health'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.7.1]
+      key: qnap.disk.health[1]
+      delay: 2m
+      value_type: CHAR
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD1
+      triggers:
+      - uuid: bf497a56fa4e4315b0b4b53b66694d9f
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[1])<>"GOOD" and last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[1])<>"--"
+        name: 'QNAP: HDD1 health is not GOOD'
+        event_name: 'QNAP: HDD1 health is {ITEM.LASTVALUE}'
+        priority: HIGH
+        description: The QNAP-reported disk health is neither GOOD nor the -- placeholder used for an empty bay.
+    - uuid: de23dece5315430bbd75a127291849e8
+      name: 'HDD1: Temperature'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.3.1]
+      key: qnap.disk.temp[1]
+      delay: 2m
+      value_type: UNSIGNED
+      units: °C
+      tags:
+      - tag: component
+        value: temperature
+      - tag: disk
+        value: HDD1
+      triggers:
+      - uuid: 0ab6ccb0d16249e4be238068e81292de
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.temp[1])>={$QNAP.DISK.TEMP.WARN} and last(/QNAP TS-869 Pro by
+          SNMP/qnap.disk.temp[1])>0
+        name: 'QNAP: HDD1 temperature is high'
+        event_name: 'QNAP: HDD1 temperature is {ITEM.LASTVALUE}'
+        priority: WARNING
+        description: Disk temperature exceeds the configured warning threshold. A value of 0 is ignored so an empty bay does
+          not alert.
+    - uuid: 0e551c3694274cb5b088037cdf745175
+      name: 'HDD2: Model'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.5.2]
+      key: qnap.disk.model[2]
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD2
+    - uuid: 635095a318104732af3e56eff573e0e3
+      name: 'HDD2: Capacity'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.6.2]
+      key: qnap.disk.capacity[2]
+      delay: 1h
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD2
+    - uuid: 034baa9548a34b12b855fbab135b2c59
+      name: 'HDD2: Health'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.7.2]
+      key: qnap.disk.health[2]
+      delay: 2m
+      value_type: CHAR
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD2
+      triggers:
+      - uuid: b94cdb5e6ad74f58976ab00fbdb13e71
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[2])<>"GOOD" and last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[2])<>"--"
+        name: 'QNAP: HDD2 health is not GOOD'
+        event_name: 'QNAP: HDD2 health is {ITEM.LASTVALUE}'
+        priority: HIGH
+        description: The QNAP-reported disk health is neither GOOD nor the -- placeholder used for an empty bay.
+    - uuid: 215ef81626594d78957c2d608c93943c
+      name: 'HDD2: Temperature'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.3.2]
+      key: qnap.disk.temp[2]
+      delay: 2m
+      value_type: UNSIGNED
+      units: °C
+      tags:
+      - tag: component
+        value: temperature
+      - tag: disk
+        value: HDD2
+      triggers:
+      - uuid: b537bf961c0e4e7a960509fdc40dd05c
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.temp[2])>={$QNAP.DISK.TEMP.WARN} and last(/QNAP TS-869 Pro by
+          SNMP/qnap.disk.temp[2])>0
+        name: 'QNAP: HDD2 temperature is high'
+        event_name: 'QNAP: HDD2 temperature is {ITEM.LASTVALUE}'
+        priority: WARNING
+        description: Disk temperature exceeds the configured warning threshold. A value of 0 is ignored so an empty bay does
+          not alert.
+    - uuid: cc2fb23ec6c24c8b93fc51b2fb036ef3
+      name: 'HDD3: Model'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.5.3]
+      key: qnap.disk.model[3]
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD3
+    - uuid: 75a5c7f84c2a4f6ebbec140294a5c12b
+      name: 'HDD3: Capacity'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.6.3]
+      key: qnap.disk.capacity[3]
+      delay: 1h
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD3
+    - uuid: d2329fce576342a086a28dcde9c16474
+      name: 'HDD3: Health'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.7.3]
+      key: qnap.disk.health[3]
+      delay: 2m
+      value_type: CHAR
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD3
+      triggers:
+      - uuid: 0db3d96a9d384b1eb68515ef4b59975c
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[3])<>"GOOD" and last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[3])<>"--"
+        name: 'QNAP: HDD3 health is not GOOD'
+        event_name: 'QNAP: HDD3 health is {ITEM.LASTVALUE}'
+        priority: HIGH
+        description: The QNAP-reported disk health is neither GOOD nor the -- placeholder used for an empty bay.
+    - uuid: 0d27a4fd97bb40c39dc513b5d7ed6964
+      name: 'HDD3: Temperature'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.3.3]
+      key: qnap.disk.temp[3]
+      delay: 2m
+      value_type: UNSIGNED
+      units: °C
+      tags:
+      - tag: component
+        value: temperature
+      - tag: disk
+        value: HDD3
+      triggers:
+      - uuid: f98d9f21d2ac4a4f9188b863bd6ee80c
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.temp[3])>={$QNAP.DISK.TEMP.WARN} and last(/QNAP TS-869 Pro by
+          SNMP/qnap.disk.temp[3])>0
+        name: 'QNAP: HDD3 temperature is high'
+        event_name: 'QNAP: HDD3 temperature is {ITEM.LASTVALUE}'
+        priority: WARNING
+        description: Disk temperature exceeds the configured warning threshold. A value of 0 is ignored so an empty bay does
+          not alert.
+    - uuid: db8c8f8ecfd34e9a86caf65a9168b20e
+      name: 'HDD4: Model'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.5.4]
+      key: qnap.disk.model[4]
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD4
+    - uuid: 9120d810326642e7a2efd0cbdb28fadf
+      name: 'HDD4: Capacity'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.6.4]
+      key: qnap.disk.capacity[4]
+      delay: 1h
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD4
+    - uuid: 29064091100f417f8dfbe3d021824171
+      name: 'HDD4: Health'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.7.4]
+      key: qnap.disk.health[4]
+      delay: 2m
+      value_type: CHAR
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD4
+      triggers:
+      - uuid: 14b4e84fc60e4641ae0f6de597f01748
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[4])<>"GOOD" and last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[4])<>"--"
+        name: 'QNAP: HDD4 health is not GOOD'
+        event_name: 'QNAP: HDD4 health is {ITEM.LASTVALUE}'
+        priority: HIGH
+        description: The QNAP-reported disk health is neither GOOD nor the -- placeholder used for an empty bay.
+    - uuid: bc666ed3bc3649128097c73c15c96a87
+      name: 'HDD4: Temperature'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.3.4]
+      key: qnap.disk.temp[4]
+      delay: 2m
+      value_type: UNSIGNED
+      units: °C
+      tags:
+      - tag: component
+        value: temperature
+      - tag: disk
+        value: HDD4
+      triggers:
+      - uuid: bc0b07f05f7148e0a27f51a701c94806
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.temp[4])>={$QNAP.DISK.TEMP.WARN} and last(/QNAP TS-869 Pro by
+          SNMP/qnap.disk.temp[4])>0
+        name: 'QNAP: HDD4 temperature is high'
+        event_name: 'QNAP: HDD4 temperature is {ITEM.LASTVALUE}'
+        priority: WARNING
+        description: Disk temperature exceeds the configured warning threshold. A value of 0 is ignored so an empty bay does
+          not alert.
+    - uuid: 168185a3d4b545e8aa4e9409f993d7a8
+      name: 'HDD5: Model'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.5.5]
+      key: qnap.disk.model[5]
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD5
+    - uuid: f92bf18cb4aa41bf9f305d20d7a203dd
+      name: 'HDD5: Capacity'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.6.5]
+      key: qnap.disk.capacity[5]
+      delay: 1h
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD5
+    - uuid: 865337e9b73f4fabb6a50d7f96e35789
+      name: 'HDD5: Health'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.7.5]
+      key: qnap.disk.health[5]
+      delay: 2m
+      value_type: CHAR
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD5
+      triggers:
+      - uuid: d5e821d5677748bfa6d675107f5f2132
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[5])<>"GOOD" and last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[5])<>"--"
+        name: 'QNAP: HDD5 health is not GOOD'
+        event_name: 'QNAP: HDD5 health is {ITEM.LASTVALUE}'
+        priority: HIGH
+        description: The QNAP-reported disk health is neither GOOD nor the -- placeholder used for an empty bay.
+    - uuid: 0bfb06be640d4016988e966d5bd96f98
+      name: 'HDD5: Temperature'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.3.5]
+      key: qnap.disk.temp[5]
+      delay: 2m
+      value_type: UNSIGNED
+      units: °C
+      tags:
+      - tag: component
+        value: temperature
+      - tag: disk
+        value: HDD5
+      triggers:
+      - uuid: bbb7758bb6cb4e948e1b4d7114be037d
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.temp[5])>={$QNAP.DISK.TEMP.WARN} and last(/QNAP TS-869 Pro by
+          SNMP/qnap.disk.temp[5])>0
+        name: 'QNAP: HDD5 temperature is high'
+        event_name: 'QNAP: HDD5 temperature is {ITEM.LASTVALUE}'
+        priority: WARNING
+        description: Disk temperature exceeds the configured warning threshold. A value of 0 is ignored so an empty bay does
+          not alert.
+    - uuid: 90bb700d106148f69ad5023d86f08eca
+      name: 'HDD6: Model'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.5.6]
+      key: qnap.disk.model[6]
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD6
+    - uuid: 3e506be7de824281aa5d85ef6da55952
+      name: 'HDD6: Capacity'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.6.6]
+      key: qnap.disk.capacity[6]
+      delay: 1h
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD6
+    - uuid: 26f6d1fe91704cfc9c4a2fa3e186bdfa
+      name: 'HDD6: Health'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.7.6]
+      key: qnap.disk.health[6]
+      delay: 2m
+      value_type: CHAR
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD6
+      triggers:
+      - uuid: 8716729fdafd4101b94fde2c8ffe4ff2
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[6])<>"GOOD" and last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[6])<>"--"
+        name: 'QNAP: HDD6 health is not GOOD'
+        event_name: 'QNAP: HDD6 health is {ITEM.LASTVALUE}'
+        priority: HIGH
+        description: The QNAP-reported disk health is neither GOOD nor the -- placeholder used for an empty bay.
+    - uuid: af4240c0a6c3464492f7e0e29aed292d
+      name: 'HDD6: Temperature'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.3.6]
+      key: qnap.disk.temp[6]
+      delay: 2m
+      value_type: UNSIGNED
+      units: °C
+      tags:
+      - tag: component
+        value: temperature
+      - tag: disk
+        value: HDD6
+      triggers:
+      - uuid: 8c35510f73164c4f930696e50442dbcc
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.temp[6])>={$QNAP.DISK.TEMP.WARN} and last(/QNAP TS-869 Pro by
+          SNMP/qnap.disk.temp[6])>0
+        name: 'QNAP: HDD6 temperature is high'
+        event_name: 'QNAP: HDD6 temperature is {ITEM.LASTVALUE}'
+        priority: WARNING
+        description: Disk temperature exceeds the configured warning threshold. A value of 0 is ignored so an empty bay does
+          not alert.
+    - uuid: 735d5eb05516453a80d66a23be582fa3
+      name: 'HDD7: Model'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.5.7]
+      key: qnap.disk.model[7]
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD7
+    - uuid: 55e17b39eef140968f6fc61c1dbeff9c
+      name: 'HDD7: Capacity'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.6.7]
+      key: qnap.disk.capacity[7]
+      delay: 1h
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD7
+    - uuid: b2610c84f49d4465ad0e1d118caf84a2
+      name: 'HDD7: Health'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.7.7]
+      key: qnap.disk.health[7]
+      delay: 2m
+      value_type: CHAR
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD7
+      triggers:
+      - uuid: 699c9ba4695f4331bc14bc2b8ffb1cb7
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[7])<>"GOOD" and last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[7])<>"--"
+        name: 'QNAP: HDD7 health is not GOOD'
+        event_name: 'QNAP: HDD7 health is {ITEM.LASTVALUE}'
+        priority: HIGH
+        description: The QNAP-reported disk health is neither GOOD nor the -- placeholder used for an empty bay.
+    - uuid: 9f45472cb16b4a1db7cd4abd81dbdd94
+      name: 'HDD7: Temperature'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.3.7]
+      key: qnap.disk.temp[7]
+      delay: 2m
+      value_type: UNSIGNED
+      units: °C
+      tags:
+      - tag: component
+        value: temperature
+      - tag: disk
+        value: HDD7
+      triggers:
+      - uuid: 734a52d8bc6841caae256fbc2ad4e299
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.temp[7])>={$QNAP.DISK.TEMP.WARN} and last(/QNAP TS-869 Pro by
+          SNMP/qnap.disk.temp[7])>0
+        name: 'QNAP: HDD7 temperature is high'
+        event_name: 'QNAP: HDD7 temperature is {ITEM.LASTVALUE}'
+        priority: WARNING
+        description: Disk temperature exceeds the configured warning threshold. A value of 0 is ignored so an empty bay does
+          not alert.
+    - uuid: b914d1f6e3144b37b73a0f649dd77f1e
+      name: 'HDD8: Model'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.5.8]
+      key: qnap.disk.model[8]
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD8
+    - uuid: ef8e160675894c09be4887feda04f35c
+      name: 'HDD8: Capacity'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.6.8]
+      key: qnap.disk.capacity[8]
+      delay: 1h
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD8
+    - uuid: 61a655bb23424498876bf32e80666b92
+      name: 'HDD8: Health'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.7.8]
+      key: qnap.disk.health[8]
+      delay: 2m
+      value_type: CHAR
+      tags:
+      - tag: component
+        value: disk
+      - tag: disk
+        value: HDD8
+      triggers:
+      - uuid: 4792e0fd03a74bab955ee21d7f398bee
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[8])<>"GOOD" and last(/QNAP TS-869 Pro by SNMP/qnap.disk.health[8])<>"--"
+        name: 'QNAP: HDD8 health is not GOOD'
+        event_name: 'QNAP: HDD8 health is {ITEM.LASTVALUE}'
+        priority: HIGH
+        description: The QNAP-reported disk health is neither GOOD nor the -- placeholder used for an empty bay.
+    - uuid: e409bfb9e5774b678d976ebdd1376ba0
+      name: 'HDD8: Temperature'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.11.1.3.8]
+      key: qnap.disk.temp[8]
+      delay: 2m
+      value_type: UNSIGNED
+      units: °C
+      tags:
+      - tag: component
+        value: temperature
+      - tag: disk
+        value: HDD8
+      triggers:
+      - uuid: c08b90cc2e684207b66c17cac69091fa
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.disk.temp[8])>={$QNAP.DISK.TEMP.WARN} and last(/QNAP TS-869 Pro by
+          SNMP/qnap.disk.temp[8])>0
+        name: 'QNAP: HDD8 temperature is high'
+        event_name: 'QNAP: HDD8 temperature is {ITEM.LASTVALUE}'
+        priority: WARNING
+        description: Disk temperature exceeds the configured warning threshold. A value of 0 is ignored so an empty bay does
+          not alert.
+    - uuid: fd749ed2ca5f4030bbfa94a0423e6e0c
+      name: 'System fan 1: Speed'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.15.1.3.1]
+      key: qnap.fan.rpm[1]
+      delay: 2m
+      value_type: UNSIGNED
+      units: RPM
+      tags:
+      - tag: component
+        value: fan
+      - tag: fan
+        value: '1'
+      triggers:
+      - uuid: 1ed0fd1992e248a8a0466fb39b05c5d2
+        expression: max(/QNAP TS-869 Pro by SNMP/qnap.fan.rpm[1],5m)=0
+        name: 'QNAP: System fan 1 is stopped'
+        priority: HIGH
+    - uuid: d840af9d68f649c8b14ae0a12302f9f9
+      name: 'System fan 2: Speed'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.15.1.3.2]
+      key: qnap.fan.rpm[2]
+      delay: 2m
+      value_type: UNSIGNED
+      units: RPM
+      tags:
+      - tag: component
+        value: fan
+      - tag: fan
+        value: '2'
+      triggers:
+      - uuid: e2cb1f2632714bfbaa91056c4470b811
+        expression: max(/QNAP TS-869 Pro by SNMP/qnap.fan.rpm[2],5m)=0
+        name: 'QNAP: System fan 2 is stopped'
+        priority: HIGH
+    - uuid: abeceb9b9e084db3bb66e5a29bc26917
+      name: 'DataVol1: Total space'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.17.1.4.1]
+      key: qnap.volume.total[1]
+      delay: 5m
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '1024'
+      tags:
+      - tag: component
+        value: storage
+      - tag: volume
+        value: DataVol1
+    - uuid: 546fc8f0439f465db17f47d8730cea43
+      name: 'DataVol1: Free space'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.17.1.5.1]
+      key: qnap.volume.free[1]
+      delay: 5m
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '1024'
+      tags:
+      - tag: component
+        value: storage
+      - tag: volume
+        value: DataVol1
+    - uuid: cddc3ea76cbc4ba5b1701febe7bba9ac
+      name: 'DataVol1: Status'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.4.1.24681.1.3.17.1.6.1]
+      key: qnap.volume.status[1]
+      delay: 2m
+      value_type: CHAR
+      tags:
+      - tag: component
+        value: storage
+      - tag: volume
+        value: DataVol1
+      triggers:
+      - uuid: 7c9089293deb4786b271ad82e9c756e7
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.volume.status[1])<>"Ready"
+        name: 'QNAP: DataVol1 is not Ready'
+        event_name: 'QNAP: DataVol1 status is {ITEM.LASTVALUE}'
+        priority: HIGH
+    - uuid: cc0281c304f14dcb99e1e67c9e440937
+      name: 'DataVol1: Space utilization'
+      type: CALCULATED
+      key: qnap.volume.util[1]
+      delay: 5m
+      value_type: FLOAT
+      units: '%'
+      params: 100*(1-last(//qnap.volume.free[1])/last(//qnap.volume.total[1]))
+      tags:
+      - tag: component
+        value: storage
+      - tag: volume
+        value: DataVol1
+      triggers:
+      - uuid: 9a058043302446438b6cae32e008421c
+        expression: last(/QNAP TS-869 Pro by SNMP/qnap.volume.util[1])>={$QNAP.VOLUME.USED.WARN}
+        name: 'QNAP: DataVol1 space utilization is high'
+        event_name: 'QNAP: DataVol1 is {ITEM.LASTVALUE} full'
+        priority: WARNING
+    - uuid: 3705347991f449639d4dbe4ad6b95193
+      name: 'CPU core 1: Utilization'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.25.3.3.1.2.768]
+      key: qnap.cpu.core.util[1]
+      delay: 1m
+      history: 30d
+      trends: 365d
+      value_type: UNSIGNED
+      units: '%'
+      tags:
+      - tag: component
+        value: cpu
+    - uuid: 8a4755b4b7a74d7f94dda2f077267968
+      name: 'CPU core 2: Utilization'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.25.3.3.1.2.769]
+      key: qnap.cpu.core.util[2]
+      delay: 1m
+      history: 30d
+      trends: 365d
+      value_type: UNSIGNED
+      units: '%'
+      tags:
+      - tag: component
+        value: cpu
+    - uuid: 81b925da872f4efc8d31bae9dca1aabd
+      name: 'CPU core 3: Utilization'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.25.3.3.1.2.770]
+      key: qnap.cpu.core.util[3]
+      delay: 1m
+      history: 30d
+      trends: 365d
+      value_type: UNSIGNED
+      units: '%'
+      tags:
+      - tag: component
+        value: cpu
+    - uuid: a015c93cad9a418f83b17a06e440585a
+      name: 'CPU core 4: Utilization'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.25.3.3.1.2.771]
+      key: qnap.cpu.core.util[4]
+      delay: 1m
+      history: 30d
+      trends: 365d
+      value_type: UNSIGNED
+      units: '%'
+      tags:
+      - tag: component
+        value: cpu
+    - uuid: 74bb49d15f18438e8057762d26775119
+      name: 'CPU: Average utilization'
+      type: CALCULATED
+      key: qnap.cpu.util.avg
+      delay: 1m
+      history: 30d
+      trends: 365d
+      value_type: FLOAT
+      units: '%'
+      params: (last(//qnap.cpu.core.util[1])+last(//qnap.cpu.core.util[2])+last(//qnap.cpu.core.util[3])+last(//qnap.cpu.core.util[4]))/4
+      tags:
+      - tag: component
+        value: cpu
+      triggers:
+      - uuid: 743a86343f0d448b8697a1f3efb2cab2
+        expression: avg(/QNAP TS-869 Pro by SNMP/qnap.cpu.util.avg,10m)>={$QNAP.CPU.UTIL.WARN}
+        name: 'QNAP: CPU utilization is high'
+        event_name: 'QNAP: CPU average utilization is {ITEM.LASTVALUE}'
+        priority: WARNING
+        description: Average CPU utilization has exceeded the configured threshold for 10 minutes.
+    - uuid: ad3e07afbfd241509abef2ad9f1025c3
+      name: 'Physical memory: Total'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.25.2.3.1.5.1]
+      key: qnap.mem.total
+      delay: 1m
+      history: 30d
+      trends: 365d
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '1024'
+      tags:
+      - tag: component
+        value: memory
+    - uuid: 4f9367d8301b4f28901b0f07813b02a7
+      name: 'Physical memory: Used (raw)'
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.25.2.3.1.6.1]
+      key: qnap.mem.used.raw
+      delay: 1m
+      history: 30d
+      trends: 365d
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '1024'
+      tags:
+      - tag: component
+        value: memory
+    - uuid: e534636aee314bb58fdab128459944c7
+      name: Memory buffers
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.25.2.3.1.6.6]
+      key: qnap.mem.buffers
+      delay: 1m
+      history: 30d
+      trends: 365d
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '1024'
+      tags:
+      - tag: component
+        value: memory
+    - uuid: 8c01116a734a405593994ea36b941ab8
+      name: Cached memory
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.25.2.3.1.6.7]
+      key: qnap.mem.cached
+      delay: 1m
+      history: 30d
+      trends: 365d
+      value_type: UNSIGNED
+      units: B
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '1024'
+      tags:
+      - tag: component
+        value: memory
+    - uuid: 3b3891ea6e404c17bc211a2762bd6b78
+      name: 'Physical memory: Used'
+      type: CALCULATED
+      key: qnap.mem.used
+      delay: 1m
+      history: 30d
+      trends: 365d
+      value_type: UNSIGNED
+      units: B
+      params: last(//qnap.mem.used.raw)-last(//qnap.mem.buffers)-last(//qnap.mem.cached)
+      tags:
+      - tag: component
+        value: memory
+    - uuid: ea7249aea552487cb68bb180718de2fb
+      name: 'Physical memory: Available'
+      type: CALCULATED
+      key: qnap.mem.available
+      delay: 1m
+      history: 30d
+      trends: 365d
+      value_type: UNSIGNED
+      units: B
+      params: last(//qnap.mem.total)-last(//qnap.mem.used)
+      tags:
+      - tag: component
+        value: memory
+    - uuid: 17f963456d1849d1bd5deca0a78507a7
+      name: 'Physical memory: Utilization'
+      type: CALCULATED
+      key: qnap.mem.util
+      delay: 1m
+      history: 30d
+      trends: 365d
+      value_type: FLOAT
+      units: '%'
+      params: 100*last(//qnap.mem.used)/last(//qnap.mem.total)
+      tags:
+      - tag: component
+        value: memory
+      triggers:
+      - uuid: d01a7077ad0f4de18d99645dbc24d4c6
+        expression: avg(/QNAP TS-869 Pro by SNMP/qnap.mem.util,10m)>={$QNAP.MEM.UTIL.WARN}
+        name: 'QNAP: Memory utilization is high'
+        event_name: 'QNAP: Effective memory utilization is {ITEM.LASTVALUE}'
+        priority: WARNING
+        description: Effective memory utilization excludes memory reported by QTS as buffers and cache.
+    tags:
+    - tag: class
+      value: storage
+    - tag: target
+      value: qnap
+    macros:
+    - macro: '{$SNMP_COMMUNITY}'
+      type: SECRET_TEXT
+      value: CHANGE_ME
+      description: SNMPv2c community configured on the NAS. Change this value or override it at host level.
+    - macro: '{$QNAP.DISK.TEMP.WARN}'
+      value: '50'
+      description: Disk temperature warning threshold in degrees Celsius.
+    - macro: '{$QNAP.VOLUME.USED.WARN}'
+      value: '90'
+      description: Volume utilization warning threshold in percent.
+    - macro: '{$QNAP.CPU.UTIL.WARN}'
+      value: '90'
+      description: Average CPU utilization warning threshold in percent.
+    - macro: '{$QNAP.MEM.UTIL.WARN}'
+      value: '90'
+      description: Effective physical memory utilization warning threshold in percent.
+  graphs:
+  - uuid: 1944836af2914194b4cfac27a0ad0f02
+    name: 'QNAP: CPU utilization'
+    graph_items:
+    - sortorder: '0'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.cpu.core.util[1]
+    - sortorder: '1'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.cpu.core.util[2]
+    - sortorder: '2'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.cpu.core.util[3]
+    - sortorder: '3'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.cpu.core.util[4]
+    - sortorder: '4'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.cpu.util.avg
+  - uuid: 41db8e9317f74f9cae1ff2aeecd98776
+    name: 'QNAP: Memory utilization'
+    graph_items:
+    - sortorder: '0'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.mem.util
+  - uuid: 80a1040c05d346c2ac351f03c3abc165
+    name: 'QNAP: Disk temperatures'
+    graph_items:
+    - sortorder: '0'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.disk.temp[1]
+    - sortorder: '1'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.disk.temp[2]
+    - sortorder: '2'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.disk.temp[3]
+    - sortorder: '3'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.disk.temp[4]
+    - sortorder: '4'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.disk.temp[5]
+    - sortorder: '5'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.disk.temp[6]
+    - sortorder: '6'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.disk.temp[7]
+    - sortorder: '7'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.disk.temp[8]
+  - uuid: fbb54eb24e49438f87e24c9fd79ea0ca
+    name: 'QNAP: Fan speeds'
+    graph_items:
+    - sortorder: '0'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.fan.rpm[1]
+    - sortorder: '1'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.fan.rpm[2]
+  - uuid: 28cb5c89a4134b3faffecf0b296a9279
+    name: 'QNAP: Volume utilization'
+    graph_items:
+    - sortorder: '0'
+      item:
+        host: QNAP TS-869 Pro by SNMP
+        key: qnap.volume.util[1]
