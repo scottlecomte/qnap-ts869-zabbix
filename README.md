@@ -77,8 +77,6 @@ The TS-869 Pro reports all eight bays over SNMP. An empty bay returns placeholde
 - Capacity: `0`
 - Health: `--`
 
-The template intentionally keeps HDD8 configured so that a newly installed drive begins reporting automatically.
-
 The disk-health trigger excludes `--`, and the temperature trigger ignores a value of `0`, so an empty bay should not generate false alerts.
 
 ## Template macros
@@ -101,9 +99,10 @@ On QTS 4.3.x:
 2. Locate **SNMP**.
 3. Enable the SNMP service.
 4. Use UDP port **161**.
-5. Enable SNMP v1/v2 if using this template as provided.
-6. Configure a non-default community string.
-7. Apply the settings.
+5. No Traps need to be configured (see below)
+6. Enable SNMP v1/v2 if using this template as provided.
+7. Configure a non-default community string.
+8. Apply the settings.
 
 SNMP traps are optional and are **not required** for this template. This template uses SNMP polling.
 
@@ -411,20 +410,6 @@ Polling and traps are independent; the template works without traps.
 - Do not commit your real SNMP community into a public repository.
 - Consider SNMPv3 for environments that require authentication and encryption. This template was tested with SNMPv2c.
 
-## Repository layout
-
-```text
-qnap-ts869-zabbix/
-├── README.md
-├── LICENSE
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── .gitignore
-├── templates/
-│   └── qnap-ts869-pro-zabbix-7.4.yaml
-└── screenshots/
-    └── README.md
-```
 
 ## Contributing
 
