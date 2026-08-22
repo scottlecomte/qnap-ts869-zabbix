@@ -1,12 +1,22 @@
 # Screenshots
 
 
+# Available graph values:
 
-graph_values.png - Available graph values
-cpu.png - CPU Utilization
-disk_temp.png - Disk temperature
-fan_speed.png - Fan Speed
-memory.png - Memory utilization
-vol_utilization.png - Volume utilization
+![QNAP disk temperature graph](graph_values.png)
+# CPU Utilization
+![QNAP disk temperature graph](cpu.png)
+# Disk temperature
+
+![QNAP disk temperature graph](disk_temp.png)
+
+# Fan Speed
+![QNAP disk temperature graph](fan_speed.png)
+
+# Memory utilization
+![QNAP disk temperature graph](memory.png)
+
+# Volume utilization
+![QNAP disk temperature graph](vol_utilization.png)
 
 
